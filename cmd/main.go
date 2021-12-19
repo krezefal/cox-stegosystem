@@ -2,19 +2,14 @@ package main
 
 import (
 	"flag"
+	. "github.com/krezefal/cox-stegosystem/stego"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
-const keyLen = 8
-const maxInterval = 8
+const alpha = 0.1
 
 func embeddingProcedure(src, tg *string, r *int, m *string) {
 	logrus.Info("Embedding message procedure starts")
-
-	if *tg == "" {
-		logrus.Fatal("Empty file path of the target image")
-	}
 
 	logrus.Debug("Starting read image")
 	sourceImage, err := ReadImage(*src)
@@ -32,68 +27,52 @@ func embeddingProcedure(src, tg *string, r *int, m *string) {
 		message = GenerateRandomMessage(*r)
 		logrus.Info("Random message to embed:\n", message)
 	} else {
-		logrus.Debug("Converting given message to byte sequence")
+		logrus.Debug("Converting given message to bit sequence")
 		message = GenerateMessage(*m)
 	}
 
-	logrus.Debug("Generating random key for intervals")
-	key := GenerateKey(keyLen, maxInterval)
-
-	logrus.Debug("Embedding message into image according to random intervals")
-	modifiedImage, messageLen := EmbedMessage(sourceImage, message, key)
+	logrus.Debug("Embedding message into the image")
+	modifiedImage, messageLen := EmbedMessage(sourceImage, message, alpha)
 	if messageLen == len(message) {
 		logrus.Info("All ", messageLen, " bits of message has been placed into image-container")
 	} else {
 		logrus.Info("First ", messageLen, " bits of the message has been placed into image-container")
 	}
 
-	logrus.Debug("Saving image with embedded message only")
+	logrus.Debug("Saving image with embedded message")
 	if err := WriteImage(*tg, modifiedImage); err != nil {
 		logrus.Fatal(err)
-	}
-
-	logrus.Debug("Embedding message metadata into image")
-	if file, err := os.ReadFile(*tg); err != nil {
-		logrus.Fatal(err)
-	} else {
-		file = EmbedMetadata(file, uint32(messageLen), key)
-		logrus.Debug("Saving image with embedded message and its metadata")
-		if err := os.WriteFile(*tg, file, 0644); err != nil {
-			logrus.Fatal(err)
-		}
 	}
 
 	logrus.Info("Message embedding finished")
 }
 
-func extractingProcedure(src *string) {
+func extractingProcedure(src, tg *string) {
 	logrus.Info("Extracting message procedure starts")
 
-	logrus.Debug("Starting read image")
-	file, err := os.ReadFile(*src)
+	logrus.Debug("Starting read images")
+	srcImg, err := ReadImage(*src)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	tgImg, err := ReadImage(*tg)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
 	var message []byte
 
-	logrus.Debug("Detecting message embedding")
-	if DetectEmbedding(file, keyLen) {
-		logrus.Debug("Message embedding confirmed. Begin extracting")
-		img, err := ReadImage(*src)
-		if err != nil {
-			logrus.Fatal(err)
-		}
+	logrus.Debug("Extracting message from the image")
+	message, err = ExtractMessage(srcImg, tgImg)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
-		messageLen, key := ExtractMetadata(file, keyLen)
-		message = ExtractMessage(img, messageLen, key)
-
-		logrus.Info("Extracted message:\n", message)
-		logrus.Info("Length of this message is ", len(message), " bits")
+	if len(message) == 0 {
+		logrus.Info("Spectral coefficients of the images completely coincide. Unable to extract the message")
 	} else {
-		logrus.Debug("Detecting failed")
-		logrus.Info("Unable to extract message. " +
-			"Specified image either does not contain hidden message or file has been corrupted")
+		logrus.Info("Extracted message according to given source:\n", message)
+		logrus.Info("Length of this message is ", len(message), " bits")
 	}
 
 	logrus.Info("Message extracting finished")
@@ -116,12 +95,16 @@ func main() {
 	}
 
 	if *src == "" {
-		logrus.Fatal("Empty file path of the source image")
+		logrus.Fatal("Empty file path to the source image")
+	}
+
+	if *tg == "" {
+		logrus.Fatal("Empty file path to the target (container) image")
 	}
 
 	if !*ext {
 		embeddingProcedure(src, tg, r, m)
 	} else {
-		extractingProcedure(src)
+		extractingProcedure(src, tg)
 	}
 }
