@@ -1,0 +1,15 @@
+# Binaries
+*.exe~
+*.dll
+*.so
+*.dylib
+bin
+
+# Test binary, build with `go test -c`
+*.test
+
+# Editor and IDE paraphernalia
+.idea
+*.swp
+*.swo
+*~
