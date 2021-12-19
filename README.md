@@ -1,4 +1,4 @@
-# Cox Algorithm
+# Cox Algorithm (Spatial domain steganography)
 
 ## Description
 
