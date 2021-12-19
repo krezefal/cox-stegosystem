@@ -1,103 +1,128 @@
-package pkg
+package stego
 
 import (
+	"errors"
+	. "github.com/krezefal/cox-stegosystem/dct"
 	"image"
+	"math"
 )
 
-func EmbedMessage(img image.Image, message byte[], alpha float32) (image.Image, int) {
-
+func EmbedMessage(img image.Image, message []byte, alpha float64) (image.Image, int) {
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
 
-	size_t
-	message_len = message.size();
+	singleComponentArray := getComponent(img, BLUE)
+	dct := DCT(singleComponentArray)
 
-	if (message_len > (data.size()/8)*(data[0].size()/8)) {
-
-	std::string
-		error_mes = "Invalid arguments! Image capacity: " +
-			std::to_string((data.size()/8)*(data[0].size()/8)) +
-			", container capacity" + std::to_string(message_len);
-
-		throw
-	std::length_error(error_mes);
+	var cnt int
+	for y := 0; y < height; y += DataUnitSize {
+		for x := 0; x < width; x += DataUnitSize {
+			if cnt < len(message) {
+				embedMesBitInUnitMaxAC(dct, x, y, message[cnt], alpha)
+				cnt++
+			} else {
+				break
+			}
+		}
+		if cnt == len(message) {
+			break
+		}
 	}
 
-std::vector < std::vector < long
-	double >> res(data.size(), std::vector < long
-	double > (data[0].size()));
+	idct := IDCT(dct)
+	newImg := setComponent(img, idct, BLUE)
 
-	size_t
-	counter = 0;
+	return newImg, cnt
+}
 
-	for (std::size_t
-	h = 0;
-	h < data.size();
-	h += N){
-		for (std::size_t
-		w = 0;
-		w < data[0].size();
-		w += N){
-			int
-			max_i = 0;
-			int
-			max_j = 1;
-			for (int
-			k = 0;
-			k < N;
-			++k){
-				long
-				double
-				Ck = (k == 0 ? (1.0 / N) : (2.0 / N));
-				for (int
-				l = 0;
-				l < N;
-				++l){
-					long
-					double
-					Cl = (l == 0 ? (1.0 / N) : (2.0 / N));
-					long
-					double
-					sum = 0;
-					for (int
-					i = 0;
-					i < N;
-					++i){
-						long
-						double
-						cos_x = cosl(((2*i + 1) * M_PI * k) / (2 * N));
-						for (int
-						j = 0;
-						j < N;
-						++j){
-							sum += data[h+i][w+j] * cos_x * cosl(((2*j+1)*M_PI*l)/(2*N));
-						}
-					}
-					long
-					double
-					val = sqrtl(Ck) * sqrtl(Cl) * sum;
-					res[h+k][w+l] = val;
-					if (counter != message_len) {
-						if (k == 0 && l == 0) {
-							continue;
-						}
-						if (std::abs(val) > std::abs(res[h+max_i][w+max_j])) {
-							max_i = k;
-							max_j = l;
-						}
-					}
-				}
-			}
-			if (counter != message_len) {
-				int
-				si = message[counter] == 0 ? 1 : -1;
-				res[h+max_i][w+max_j] += alpha * si;
-				++counter;
+func ExtractMessage(srcImg image.Image, tgImg image.Image) ([]byte, error) {
+	boundsSrc := srcImg.Bounds()
+	boundsTg := tgImg.Bounds()
+
+	widthSrc, heightSrc := boundsSrc.Max.X, boundsSrc.Max.Y
+	widthTg, heightTg := boundsTg.Max.X, boundsTg.Max.Y
+
+	if widthSrc != widthTg || heightSrc != heightTg {
+		return nil, errors.New("image sizes do not match")
+	}
+
+	singleComponentArraySrc := getComponent(srcImg, BLUE)
+	dctSrc := DCT(singleComponentArraySrc)
+
+	singleComponentArrayTg := getComponent(tgImg, BLUE)
+	dctTg := DCT(singleComponentArrayTg)
+
+	var message []byte
+	for y := 0; y < heightSrc; y += DataUnitSize {
+		for x := 0; x < widthSrc; x += DataUnitSize {
+			detectedMessageBit := compareUnitsMaxAC(dctSrc, dctTg, x, y)
+			if detectedMessageBit != -1 {
+				message = append(message, byte(detectedMessageBit))
 			}
 		}
 	}
 
-	auto
-	ifdct = iFDCT(res, N);
-	return ifdct;
+	return message, nil
+}
+
+func embedMesBitInUnitMaxAC(dct [][]float64, startX, startY int, messageBit byte, alpha float64) {
+
+	endX := startX + DataUnitSize
+	endY := startY + DataUnitSize
+
+	skipDC := 1
+	var maxX, maxY int
+	maxAC := dct[startY][startX+skipDC]
+
+	for y := startY; y < endY; y++ {
+		for x := startX; x < endX; x++ {
+			if x%DataUnitSize == 0 && y%DataUnitSize == 0 {
+				// This is DC coefficient
+				continue
+			}
+			if math.Abs(maxAC) <= math.Abs(dct[y][x]) {
+				maxX = x
+				maxY = y
+				maxAC = dct[maxY][maxX]
+			}
+		}
+	}
+
+	if messageBit == 0 {
+		dct[maxY][maxX] += alpha
+	} else {
+		dct[maxY][maxX] -= alpha
+	}
+}
+
+func compareUnitsMaxAC(dctSrc [][]float64, dctTg [][]float64, startX, startY int) int {
+	endX := startX + DataUnitSize
+	endY := startY + DataUnitSize
+
+	skipDC := 1
+	var maxX, maxY int
+	maxAC := dctSrc[startY][startX+skipDC]
+
+	for y := startY; y < endY; y++ {
+		for x := startX; x < endX; x++ {
+			if x%DataUnitSize == 0 && y%DataUnitSize == 0 {
+				// This is DC coefficient
+				continue
+			}
+			if math.Abs(maxAC) <= math.Abs(dctSrc[y][x]) {
+				maxX = x
+				maxY = y
+				maxAC = dctSrc[maxY][maxX]
+			}
+		}
+	}
+
+	switch {
+	case dctSrc[maxY][maxX] > dctTg[maxY][maxX]:
+		return 1
+	case dctSrc[maxY][maxX] < dctTg[maxY][maxX]:
+		return 0
+	}
+
+	return -1
 }
