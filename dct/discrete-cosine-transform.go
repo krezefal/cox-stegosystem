@@ -74,7 +74,6 @@ func IDCT(data [][]float64) [][]byte {
 						}
 
 						cos1 := math.Cos((float64(2*i+1) * math.Pi * float64(k)) / float64(2*DataUnitSize))
-
 						for l := 0; l < DataUnitSize; l++ {
 							var Cl float64
 							if l == 0 {
@@ -84,11 +83,10 @@ func IDCT(data [][]float64) [][]byte {
 							}
 
 							cos2 := math.Cos((float64(2*j+1) * math.Pi * float64(l)) / float64(2*DataUnitSize))
-
 							sum += math.Sqrt(Ck) * math.Sqrt(Cl) * data[h+k][w+l] * cos1 * cos2
 						}
 					}
-					result[h+i][w+j] = byte(sum)
+					result[h+i][w+j] = byte(math.Round(sum))
 				}
 			}
 		}
