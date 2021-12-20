@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const alpha = 0.1
+const alpha = 4
 
 func embeddingProcedure(src, tg *string, r *int, m *string) {
 	logrus.Info("Embedding message procedure starts")
