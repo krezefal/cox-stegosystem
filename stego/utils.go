@@ -1,102 +1,17 @@
 package stego
 
 import (
-	"golang.org/x/image/bmp"
+	"errors"
+	. "github.com/krezefal/cox-stegosystem/bmp"
 	"image"
-	"image/color"
+	"math"
 	"math/rand"
-	"os"
 	"time"
 )
 
-const RED = "RED"
-const GREEN = "GREEN"
-const BLUE = "BLUE"
+const roundingAccuracy = 1000
 
-func ReadImage(filePath string) (image.Image, error) {
-	imgFile, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return bmp.Decode(imgFile)
-}
-
-func WriteImage(filePath string, img image.Image) error {
-	if file, err := os.Create(filePath); err != nil {
-		return err
-	} else {
-		if imgErr := bmp.Encode(file, img); imgErr != nil {
-			return imgErr
-		}
-	}
-
-	return nil
-}
-
-func getComponent(img image.Image, component string) [][]byte {
-
-	bounds := img.Bounds()
-	width, height := bounds.Max.X, bounds.Max.Y
-
-	singleComponentArray := make([][]byte, height)
-	for i := range singleComponentArray {
-		singleComponentArray[i] = make([]byte, width)
-	}
-
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			r, g, b, _ := img.At(x, y).RGBA()
-			switch component {
-			case RED:
-				singleComponentArray[y][x] = uint8(r)
-			case GREEN:
-				singleComponentArray[y][x] = uint8(g)
-			case BLUE:
-				singleComponentArray[y][x] = uint8(b)
-			}
-		}
-	}
-
-	return singleComponentArray
-}
-
-func setComponent(img image.Image, singleComponentArray [][]byte, component string) *image.RGBA {
-
-	bounds := img.Bounds()
-	width, height := bounds.Max.X, bounds.Max.Y
-	imgRGBA := image.NewRGBA(image.Rectangle{Min: image.Point{}, Max: image.Point{X: width, Y: height}})
-
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-
-			pix := img.At(x, y)
-			r, g, b, a := pix.RGBA()
-
-			newPix := color.RGBA{
-				R: uint8(r),
-				G: uint8(g),
-				B: uint8(b),
-				A: uint8(a),
-			}
-
-			switch component {
-			case RED:
-				newPix.R = singleComponentArray[y][x]
-			case GREEN:
-				newPix.G = singleComponentArray[y][x]
-			case BLUE:
-				newPix.B = singleComponentArray[y][x]
-			}
-
-			imgRGBA.Set(x, y, newPix)
-		}
-	}
-
-	return imgRGBA
-}
-
-// GenerateMessage func generates specified binary sequence
+// GenerateMessage generates specified binary sequence.
 func GenerateMessage(sequence string) []byte {
 	message := make([]byte, len(sequence))
 
@@ -111,7 +26,7 @@ func GenerateMessage(sequence string) []byte {
 	return message
 }
 
-// GenerateRandomMessage func generates random binary sequence with specified length
+// GenerateRandomMessage generates random binary sequence with specified length.
 func GenerateRandomMessage(length int) []byte {
 	rMessage := make([]byte, length)
 
@@ -127,4 +42,34 @@ func GenerateRandomMessage(length int) []byte {
 	}
 
 	return rMessage
+}
+
+// PSNR calculates peak signal-to-noise ratio between one size arrays of data. It returns an error, when given arrays are
+// completely the same.
+func PSNR(data1, data2 [][]byte) (float64, error) {
+	height := len(data1)
+	width := len(data1[0])
+
+	var sum float64
+	for i := 0; i < height; i++ {
+		for j := 0; j < width; j++ {
+			sum += math.Pow(float64(data1[i][j])-float64(data2[i][j]), 2)
+		}
+	}
+
+	if sum == 0 {
+		return 0, errors.New("unable to calculate PSNR: arrays of bytes are the same")
+	}
+
+	psnr := 10 * math.Log10((float64(height)*float64(width)*math.Pow(255, 2))/sum)
+	return math.Floor(psnr*roundingAccuracy) / roundingAccuracy, nil
+}
+
+// PSNRimg calculates peak signal-to-noise ratio between one size images. It returns an error, when all pixels in given
+// images are completely the same.
+func PSNRimg(img1, img2 image.Image) (float64, error) {
+	data1 := GetArrayRGB(img1)
+	data2 := GetArrayRGB(img2)
+
+	return PSNR(data1, data2)
 }
