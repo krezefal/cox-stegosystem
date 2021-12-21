@@ -6,6 +6,7 @@ import (
 
 const DataUnitSize = 8
 
+// DCT performs discrete-cosine-transform on array of bytes; returns calculated values in frequency range.
 func DCT(data [][]byte) [][]float64 {
 
 	height := len(data)
@@ -51,6 +52,7 @@ func DCT(data [][]byte) [][]float64 {
 	return result
 }
 
+// IDCT performs inverse discrete-cosine-transform on array of values in frequency range.
 func IDCT(data [][]float64) [][]byte {
 
 	height := len(data)
@@ -86,7 +88,7 @@ func IDCT(data [][]float64) [][]byte {
 							sum += math.Sqrt(Ck) * math.Sqrt(Cl) * data[h+k][w+l] * cos1 * cos2
 						}
 					}
-					result[h+i][w+j] = byte(math.Round(sum))
+					result[h+i][w+j] = byte(sum)
 				}
 			}
 		}
