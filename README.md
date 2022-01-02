@@ -58,7 +58,7 @@ specified if embedding procedure is required\
 `-tg` is the path to target file (which will be created in case of the embedding
 procedure)
 
-For example:\
+**For example:**\
 `./cox --src examples/peppers.bmp --m 10101010 --tg examples/result.bmp`\
 or\
 `./cox --src examples/peppers.bmp --ext --tg examples/result.bmp`
@@ -67,11 +67,11 @@ Info about other optional flags is provided with `-h` option
 
 ### Principle of operation
 
-*TO ADD*
+*ADD INFO*
 
 ## Theory. Example of how it works
 
-*TO ADD*
+*ADD INFO*
 
 ## Research
 
