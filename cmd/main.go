@@ -142,7 +142,7 @@ func main() {
 	m := flag.String("m", "", "Message to embed into image-container")
 	dbg := flag.Bool("dbg", false, "Debug mode")
 	force := flag.Bool("force", false, "Forcefully skip embedding detection step while extracting "+
-		"procedure.\nSee README to find out what it is for and what consequences it has")
+		"procedure.\nSee the 'Other' section of README to find out what it is for and what consequences it has")
 
 	flag.Parse()
 
