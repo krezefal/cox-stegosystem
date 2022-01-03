@@ -58,9 +58,9 @@ Specified if embedding procedure is required\
 `-tg` is the flag followed by the path to target file
 
 **For example:**\
-`./cox --src examples/peppers.bmp --m 10101010 --tg examples/result.bmp`\
+`./cox -src examples/peppers.bmp -m 10101010 -tg examples/result.bmp`\
 or\
-`./cox --src examples/peppers.bmp --ext --tg examples/result.bmp`
+`./cox -src examples/peppers.bmp -ext -tg examples/result.bmp`
 
 It is also available to embed a randomly generated binary sequence using `-r` (info 
 about this and other optional flags is provided with `-h` option).
