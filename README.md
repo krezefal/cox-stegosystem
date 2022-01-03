@@ -25,7 +25,7 @@ of variation in values of the coefficients' energy.
 ## Implementation
 
 The program is a CLI application that performs watermark embedding and extracting
-to/from image-container. This program is a Go module.
+procedure to/from image-container. This program is a Go module.
 
 To build the binary, execute
 
