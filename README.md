@@ -133,8 +133,8 @@ is 1 data unit per 1 message bit.
 4. The maximum modulo AC coefficient is selected in each block.
 5. Depending on the current watermark message bit, according to the **first formula**
 given at the beginning, the following occurs:
-   - subtracting `α` from the previously selected AC coefficient, in case of `1`;
-   - adding `α` to the previously selected AC coefficient, in case of `0`.
+   - subtracting `α` from the AC coefficient, in case of `1`;
+   - adding `α` to the AC coefficient, in case of `0`.
 7. After all the message bits are embedded in the frequency domain of the image, the
 inverse DCT is performed for each block.
 
