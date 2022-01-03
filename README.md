@@ -87,14 +87,14 @@ Resulting image-container is saved to the provided path.
 **Extracting** 
 
 Program receives paths to 2 bmp-24 images: source and target (last one contains the 
-watermark). In case of successful reading of 2 images, the length of the watermark is
-extracted from the target file header.
+watermark). In case of successful reading of 2 images, the length of the watermark (*N*)
+is extracted from the target file header.
 
 Next, arrays of blue component are extracted from both images, after which the DCT
-operation is performed on them. Selecting the maximum AC coefficients per data units
-in array from source image and comparing with the AC coefficients at the same positions
-in array from target image, the watermark binary sequence is sequentially restored (see
-the 'Theory' section below for details). 
+operation is performed on them. Selecting the first *N* maximum AC coefficients per data
+units in array from source image and comparing with the first *N* AC coefficients at the
+same positions in array from target image, the watermark binary sequence is sequentially
+restored (see the 'Theory' section below for details). 
 
 The extracted watermark message is displayed on the screen.
 
