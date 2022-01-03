@@ -110,12 +110,11 @@ target image.
 
 Because of the Cox algorithm is robust, the watermark can remain in the image-container
 even after applying most modification procedures. In this case, it may be necessary to
-forcefully skip the embedding detection step by using the `-force` flag. 
-
-However, the watermark message length will be lost and the program will compare ALL 
-data units until the end of the array. So the original watermark (or what's left of
-it) is the first *N* bit of the extracted binary sequence (where *N* is the number 
-that was lost).
+forcefully skip the embedding detection step by using the `-force` flag. However, the
+watermark message length will be lost and the program will compare ALL data units until 
+the end of the array. So the original watermark (or what's left of it after the 
+modifications) is the first *N* bit of the extracted binary sequence, where *N* is the number 
+that was lost.
 
 ## Theory
 
