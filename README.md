@@ -98,7 +98,26 @@ the 'Theory' section below for details).
 
 The extracted watermark message is displayed on the screen.
 
-## Theory. Example of how it works
+**Skipping embedding detection**
+
+In process of executing the program in extracting mode, the embedding detection step is
+performed for the target image. On this step, the program checks the `Reserved1` and
+`Reserved2` fields of `BitMapFileHeader` for the embedded message length written there 
+before. If these fields are empty, the program decides, that specified target image
+doesn't contain a watermark at all. But these fields can also be empty if some kind of
+modifications (such as converting or compressing operations) were performed on the 
+target image. 
+
+Because of the Cox algorithm is robust, the watermark can remain in the image-container
+even after applying most modification procedures. In this case, it may be necessary to
+forcefully skip the embedding detection step by using the `-force` flag. 
+
+However, the watermark message length will be lost and the program will compare ALL 
+data units until the end of the array. So the original watermark (or what's left of
+it) is the first *N* bit of the extracted binary sequence (where *N* is the number 
+that was lost).
+
+## Theory
 
 The basis for the Cox steganographic algorithm is the two-dimensional discrete cosine
 transform (DCT).
@@ -113,10 +132,11 @@ coefficients *D<sub>i</sub>* (*i = 1, ... , N*; where *N* is the number of data 
 3. Data units array is formed, the watermark message will be embedded in it: there
 is 1 data unit per 1 message bit.
 4. The maximum modulo AC coefficient is selected in each block.
-5. Depending on the current watermark message bit the following occurs:
+5. Depending on the current watermark message bit, according to the **first formula**
+given at the beginning, the following occurs:
    - subtracting `α` from the previously found AC coefficient (in case of `1`);
    - adding `α` to the AC coefficient is encoded (in case of `0`).
-6. After all the message bits are embedded in the frequency domain of the image, the
+7. After all the message bits are embedded in the frequency domain of the image, the
 inverse DCT is performed for each block.
 
 ### Watermark extracting algorithm:
@@ -138,7 +158,3 @@ according to the following principle:
    same and no watermark bit is contained in modified data unit.
 6. After comparing all data units of two images, the binary sequence of the watermark 
 is restored.
-
-## Other
-
-*add info about the force flag*
