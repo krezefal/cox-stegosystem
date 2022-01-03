@@ -50,12 +50,12 @@ To run the program in extracting mode:
 
 where\
 `<cox>` is the name of the binary for particular platform\
-`-src` is the path to source file\
+`-src` is the flag followed by the path to source file\
 `-ext` means *extract*. It is the optional flag, specified if extraction procedure is
 required\
 `-m` is the optional flag followed by the binary sequence (watermark) to embed. 
 Specified if embedding procedure is required\
-`-tg` is the path to target file
+`-tg` is the flag followed by the path to target file
 
 **For example:**\
 `./cox --src examples/peppers.bmp --m 10101010 --tg examples/result.bmp`\
