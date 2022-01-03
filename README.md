@@ -36,7 +36,7 @@ Or just run it w/o building the binary:
 `go run cmd/main.go`
 
 Folder with examples contains a couple of files on which program can be tested "out
-of box"
+of box".
 
 ### Using
 
